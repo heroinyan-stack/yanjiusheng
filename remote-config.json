@@ -1,6 +1,6 @@
 {
   "_comment": "颜究生情绪手机壁纸远程配置模板 V1.3 - 多源壁纸系统。支持Pexels/Unsplash/Wallhaven/Pixabay/彼岸图网/3G壁纸。部署到CDN后，将URL填入 data/wallpapers.js 的 REMOTE_URL。",
-  "version": "1.5.22",
+  "version": "1.5.23",
   "updatedAt": "2026-08-07",
   "proxyUrl": "",
   "_proxyNote": "国内站点(彼岸图网/3G壁纸)图片代理地址。部署 tools/proxy.js 后填入，如 https://your-proxy.com。留空则国内源图片不通过代理。",
@@ -1958,12 +1958,6 @@
         "id": "upload-1786118564334-7",
         "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786118562313_6301.jpg",
         "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786118562313_6301.jpg"
-      },
-      {
-        "source": "custom",
-        "id": "upload-1786118566365-8",
-        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786118564334_80.jpg",
-        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786118564334_80.jpg"
       },
       {
         "source": "custom",
