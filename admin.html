@@ -448,12 +448,14 @@ async function loadConfig() {
 }
 
 async function saveToGithub(silent) {
-  if (!config) { showToast('请先加载配置', 'error'); return; }
+  if (!config) { showToast('请先加载配置', 'error'); return false; }
 
   var repo = document.getElementById('repoInput').value.trim();
   var path = document.getElementById('pathInput').value.trim();
   var branch = document.getElementById('branchInput').value.trim();
   var token = document.getElementById('tokenInput').value.trim();
+
+  if (!repo || !token) { showToast('请填写仓库和Token', 'error'); return false; }
 
   // 版本号自动+1
   var parts = (config.version || '1.0.0').split('.').map(Number);
@@ -461,44 +463,75 @@ async function saveToGithub(silent) {
   config.version = parts.join('.');
   config.updatedAt = new Date().toISOString().slice(0, 10);
 
-  showLoading('保存到GitHub...');
+  if (!silent) showLoading('保存到GitHub...');
 
   var content = btoa(unescape(encodeURIComponent(JSON.stringify(config, null, 2))));
 
-  try {
-    var url = GITHUB_API + '/repos/' + repo + '/contents/' + path;
-    var res = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: 'v' + config.version + ' 壁纸更新 ' + config.updatedAt,
-        content: content,
-        sha: configSha,
-        branch: branch
-      })
-    });
-
-    if (!res.ok) {
-      var errData = await res.json();
-      throw new Error(errData.message || 'HTTP ' + res.status);
-    }
-    var data = await res.json();
-    configSha = data.content.sha;
-    document.getElementById('versionBadge').textContent = 'v' + config.version;
-    if (!silent) {
-      showToast('保存成功！v' + config.version + ' 已推送', 'success');
-    }
-
-    // 刷新CDN缓存
+  // 最多重试3次（sha过期时自动获取最新sha重试）
+  for (var attempt = 0; attempt < 3; attempt++) {
     try {
-      await fetch('https://purge.jsdelivr.net/gh/' + repo + '@' + branch + '/' + path);
-      if (!silent) showToast('CDN缓存已刷新', 'success');
-    } catch(e) {}
-  } catch (err) {
-    showToast('保存失败: ' + err.message, 'error');
-    console.error(err);
+      var url = GITHUB_API + '/repos/' + repo + '/contents/' + path;
+      var res = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'v' + config.version + ' 壁纸更新 ' + config.updatedAt,
+          content: content,
+          sha: configSha,
+          branch: branch
+        })
+      });
+
+      if (res.status === 409 || res.status === 422) {
+        // sha过期，重新获取最新sha后重试
+        var getRes = await fetch(url + '?ref=' + branch, {
+          headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (getRes.ok) {
+          var getData = await getRes.json();
+          configSha = getData.sha;
+          // 注意：不覆盖config，保留用户的修改，只用新sha重试
+          if (!silent) showLoading('同步最新版本，重试保存...');
+          continue;
+        }
+      }
+
+      if (!res.ok) {
+        var errData = await res.json();
+        throw new Error(errData.message || 'HTTP ' + res.status);
+      }
+
+      var data = await res.json();
+      configSha = data.content.sha;
+      document.getElementById('versionBadge').textContent = 'v' + config.version;
+
+      // 刷新CDN缓存
+      try {
+        await fetch('https://purge.jsdelivr.net/gh/' + repo + '@' + branch + '/' + path);
+      } catch(e) {}
+
+      if (!silent) showToast('保存成功！v' + config.version, 'success');
+      hideLoading();
+      return true;
+    } catch (err) {
+      if (attempt < 2) {
+        // 非sha错误，不需要重试
+        if (err.message.indexOf('409') === -1 && err.message.indexOf('422') === -1) {
+          showToast('保存失败: ' + err.message, 'error');
+          console.error(err);
+          hideLoading();
+          return false;
+        }
+      } else {
+        showToast('保存失败: ' + err.message, 'error');
+        console.error(err);
+        hideLoading();
+        return false;
+      }
+    }
   }
   hideLoading();
+  return false;
 }
 
 // ============ 渲染 ============
@@ -822,10 +855,10 @@ async function confirmAdd() {
     hideLoading();
     // 上传后自动保存配置到GitHub
     showToast('上传成功 ' + added + ' 张，正在保存配置...', '');
-    try {
-      await saveToGithub(true);
-      showToast('上传并保存成功！小程序下次打开自动更新', 'success');
-    } catch(e) {
+    var ok = await saveToGithub(true);
+    if (ok) {
+      showToast('上传并保存成功！', 'success');
+    } else {
       showToast('已上传，请手动点击保存按钮', 'error');
     }
     pendingFiles = [];
@@ -869,10 +902,10 @@ async function confirmAdd() {
 
   // 添加后自动保存配置到GitHub
   showToast('添加了 ' + added + ' 张，正在保存...', '');
-  try {
-    await saveToGithub(true);
-    showToast('添加并保存成功！小程序下次打开自动更新', 'success');
-  } catch(e) {
+  var ok = await saveToGithub(true);
+  if (ok) {
+    showToast('添加并保存成功！', 'success');
+  } else {
     showToast('已添加，请手动点击保存按钮', 'error');
   }
   document.getElementById('addIdOrUrl').value = '';
@@ -895,11 +928,11 @@ async function deleteWallpaper(idx) {
 
   // 自动保存到GitHub
   showToast('正在保存到GitHub...', '');
-  try {
-    await saveToGithub(true); // true = 静默模式，不重复showToast
-    showToast('已删除并保存成功！小程序下次打开自动更新', 'success');
-  } catch (err) {
-    showToast('删除已生效但保存失败，请手动点保存按钮', 'error');
+  var ok = await saveToGithub(true);
+  if (ok) {
+    showToast('已删除并保存成功！', 'success');
+  } else {
+    showToast('保存失败，请手动点保存按钮重试', 'error');
   }
   renderTabs();
   renderGrid();
