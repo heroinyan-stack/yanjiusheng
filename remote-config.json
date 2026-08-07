@@ -1,6 +1,6 @@
 {
   "_comment": "颜究生情绪手机壁纸远程配置模板 V1.3 - 多源壁纸系统。支持Pexels/Unsplash/Wallhaven/Pixabay/彼岸图网/3G壁纸。部署到CDN后，将URL填入 data/wallpapers.js 的 REMOTE_URL。",
-  "version": "1.5.27",
+  "version": "1.5.28",
   "updatedAt": "2026-08-07",
   "proxyUrl": "",
   "_proxyNote": "国内站点(彼岸图网/3G壁纸)图片代理地址。部署 tools/proxy.js 后填入，如 https://your-proxy.com。留空则国内源图片不通过代理。",
@@ -2306,6 +2306,42 @@
         "id": "upload-1786120681628-3",
         "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120679274_5996.jpg",
         "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120679274_5996.jpg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1786120990165-0",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120988303_7937.jpg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120988303_7937.jpg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1786120991702-1",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120990165_4777.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120990165_4777.jpeg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1786120993462-2",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120991702_1728.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120991702_1728.jpeg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1786120994665-3",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120993462_941.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120993462_941.jpeg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1786120996165-4",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120994665_2187.png",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120994665_2187.png"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1786120997585-5",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120996165_8159.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1786120996165_8159.jpeg"
       }
     ]
   },
