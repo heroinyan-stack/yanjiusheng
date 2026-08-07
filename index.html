@@ -447,7 +447,7 @@ async function loadConfig() {
   hideLoading();
 }
 
-async function saveToGithub() {
+async function saveToGithub(silent) {
   if (!config) { showToast('请先加载配置', 'error'); return; }
 
   var repo = document.getElementById('repoInput').value.trim();
@@ -485,12 +485,14 @@ async function saveToGithub() {
     var data = await res.json();
     configSha = data.content.sha;
     document.getElementById('versionBadge').textContent = 'v' + config.version;
-    showToast('保存成功！v' + config.version + ' 已推送', 'success');
+    if (!silent) {
+      showToast('保存成功！v' + config.version + ' 已推送', 'success');
+    }
 
     // 刷新CDN缓存
     try {
       await fetch('https://purge.jsdelivr.net/gh/' + repo + '@' + branch + '/' + path);
-      showToast('CDN缓存已刷新', 'success');
+      if (!silent) showToast('CDN缓存已刷新', 'success');
     } catch(e) {}
   } catch (err) {
     showToast('保存失败: ' + err.message, 'error');
@@ -818,7 +820,14 @@ async function confirmAdd() {
     }
 
     hideLoading();
-    showToast('上传成功 ' + added + ' 张（记得点击保存）', 'success');
+    // 上传后自动保存配置到GitHub
+    showToast('上传成功 ' + added + ' 张，正在保存配置...', '');
+    try {
+      await saveToGithub(true);
+      showToast('上传并保存成功！小程序下次打开自动更新', 'success');
+    } catch(e) {
+      showToast('已上传，请手动点击保存按钮', 'error');
+    }
     pendingFiles = [];
     document.getElementById('addFileInput').value = '';
     document.getElementById('addPreview').innerHTML = '';
@@ -858,7 +867,14 @@ async function confirmAdd() {
     added++;
   }
 
-  showToast('添加了 ' + added + ' 张壁纸（记得点击保存）', 'success');
+  // 添加后自动保存配置到GitHub
+  showToast('添加了 ' + added + ' 张，正在保存...', '');
+  try {
+    await saveToGithub(true);
+    showToast('添加并保存成功！小程序下次打开自动更新', 'success');
+  } catch(e) {
+    showToast('已添加，请手动点击保存按钮', 'error');
+  }
   document.getElementById('addIdOrUrl').value = '';
   document.getElementById('addPreview').innerHTML = '';
   renderTabs();
@@ -866,17 +882,25 @@ async function confirmAdd() {
   renderStats();
 }
 
-function deleteWallpaper(idx) {
+async function deleteWallpaper(idx) {
   if (!config || !currentCategory) return;
   if (!config.wallpaperItems || !config.wallpaperItems[currentCategory]) return;
 
   var wp = config.wallpaperItems[currentCategory][idx];
   if (!wp) return;
 
-  if (!confirm('确认删除 ' + wp.id + ' ？')) return;
+  if (!confirm('确认删除 ' + wp.id + ' ？\n删除后将自动保存到GitHub，立即生效。')) return;
 
   config.wallpaperItems[currentCategory].splice(idx, 1);
-  showToast('已删除（记得点击保存）', 'success');
+
+  // 自动保存到GitHub
+  showToast('正在保存到GitHub...', '');
+  try {
+    await saveToGithub(true); // true = 静默模式，不重复showToast
+    showToast('已删除并保存成功！小程序下次打开自动更新', 'success');
+  } catch (err) {
+    showToast('删除已生效但保存失败，请手动点保存按钮', 'error');
+  }
   renderTabs();
   renderGrid();
   renderStats();
