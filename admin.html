@@ -427,7 +427,11 @@ async function loadConfig() {
     var data = await res.json();
     configSha = data.sha;
 
-    var content = atob(data.content.replace(/\n/g, ''));
+    // 正确解码UTF-8中文（atob不支持多字节字符）
+    var raw = atob(data.content.replace(/\n/g, ''));
+    var bytes = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    var content = new TextDecoder('utf-8').decode(bytes);
     config = JSON.parse(content);
 
     document.getElementById('versionBadge').textContent = 'v' + config.version;
