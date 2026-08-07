@@ -336,12 +336,14 @@ body {
       <select id="addCategory">
         <option value="">选择分类</option>
       </select>
-      <select id="addSource">
+      <select id="addSource" onchange="onSourceChange()">
         <option value="pexels">Pexels (输入图片ID)</option>
         <option value="custom">自定义URL</option>
+        <option value="upload">📂 本地上传</option>
       </select>
       <input type="text" id="addIdOrUrl" placeholder="Pexels图片ID (如 19999456) 或 完整图片URL" style="min-width:280px;">
-      <button class="btn btn-primary" onclick="previewAdd()">预览</button>
+      <input type="file" id="addFileInput" accept="image/*" multiple style="display:none;" onchange="onFileSelected()">
+      <button class="btn btn-primary" onclick="previewAdd()" id="previewBtn">预览</button>
       <button class="btn btn-success" onclick="confirmAdd()">确认添加</button>
     </div>
     <div class="add-hint" id="addHint">输入Pexels图片ID后点击预览，确认图片内容后添加。支持批量添加：用逗号分隔多个ID。</div>
@@ -620,6 +622,123 @@ function toggleAddPanel() {
   panel.classList.toggle('show');
 }
 
+// 存储待上传的文件和已上传的图片URL
+var pendingFiles = [];
+var uploadedImages = []; // [{url, thumb, name}]
+
+/** 切换添加来源时显示/隐藏对应输入框 */
+function onSourceChange() {
+  var source = document.getElementById('addSource').value;
+  var textInput = document.getElementById('addIdOrUrl');
+  var fileInput = document.getElementById('addFileInput');
+  var previewBtn = document.getElementById('previewBtn');
+  var hint = document.getElementById('addHint');
+
+  if (source === 'upload') {
+    textInput.style.display = 'none';
+    fileInput.style.display = 'inline-block';
+    previewBtn.style.display = 'none';
+    hint.textContent = '选择本地图片后自动预览。图片将上传到GitHub仓库托管，通过CDN加载，不会读不出来。支持多选。';
+    pendingFiles = [];
+    uploadedImages = [];
+  } else {
+    textInput.style.display = 'inline-block';
+    fileInput.style.display = 'none';
+    previewBtn.style.display = 'inline-flex';
+    if (source === 'pexels') {
+      hint.textContent = '输入Pexels图片ID后点击预览，确认图片内容后添加。支持批量添加：用逗号分隔多个ID。';
+    } else {
+      hint.textContent = '输入完整图片URL（需支持跨域访问），点击预览确认后添加。';
+    }
+  }
+  document.getElementById('addPreview').innerHTML = '';
+}
+
+/** 文件选择回调 */
+function onFileSelected() {
+  var files = document.getElementById('addFileInput').files;
+  if (!files || files.length === 0) return;
+
+  pendingFiles = [];
+  var previewHtml = '';
+
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    if (!file.type.startsWith('image/')) continue;
+    pendingFiles.push(file);
+    previewHtml += '<div style="display:inline-block;margin:6px;text-align:center;position:relative;">' +
+      '<img class="preview-img" src="' + URL.createObjectURL(file) + '">' +
+      '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;max-width:120px;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(file.name) + '</div>' +
+      '<div style="font-size:10px;color:var(--success);">' + (file.size/1024/1024).toFixed(2) + ' MB</div>' +
+    '</div>';
+  }
+
+  document.getElementById('addPreview').innerHTML = previewHtml;
+  document.getElementById('addHint').textContent = '已选择 ' + pendingFiles.length + ' 张图片，点击"确认添加"上传到GitHub并添加到壁纸列表';
+}
+
+/** 将文件转为base64 */
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() {
+      // 去掉 data:image/xxx;base64, 前缀
+      var result = reader.result;
+      var base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+/** 获取文件扩展名 */
+function getExt(filename) {
+  var parts = filename.split('.');
+  if (parts.length > 1) return parts[parts.length - 1].toLowerCase();
+  return 'jpg';
+}
+
+/** 上传单张图片到GitHub */
+async function uploadImageToGithub(file, repo, branch, token) {
+  var ext = getExt(file.name);
+  var timestamp = Date.now();
+  var random = Math.floor(Math.random() * 10000);
+  var filename = 'wp_' + timestamp + '_' + random + '.' + ext;
+  var path = 'images/' + filename;
+
+  var base64 = await fileToBase64(file);
+
+  var url = GITHUB_API + '/repos/' + repo + '/contents/' + path;
+  var res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': 'token ' + token,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: '上传壁纸: ' + file.name,
+      content: base64,
+      branch: branch
+    })
+  });
+
+  if (!res.ok) {
+    var err = await res.json();
+    throw new Error(err.message || 'HTTP ' + res.status);
+  }
+
+  var data = await res.json();
+  // 使用jsDelivr CDN URL（稳定且快）
+  var cdnUrl = 'https://cdn.jsdelivr.net/gh/' + repo + '@' + branch + '/' + path;
+  return {
+    url: cdnUrl,
+    thumb: cdnUrl,
+    name: filename
+  };
+}
+
 function previewAdd() {
   var cat = document.getElementById('addCategory').value;
   var source = document.getElementById('addSource').value;
@@ -653,13 +772,11 @@ function previewAdd() {
   previewDiv.innerHTML = html;
 }
 
-function confirmAdd() {
+async function confirmAdd() {
   var cat = document.getElementById('addCategory').value;
   var source = document.getElementById('addSource').value;
-  var input = document.getElementById('addIdOrUrl').value.trim();
 
   if (!cat) { showToast('请选择分类', 'error'); return; }
-  if (!input) { showToast('请输入ID或URL', 'error'); return; }
 
   // 确保wallpaperItems存在
   if (!config.wallpaperItems) config.wallpaperItems = {};
@@ -667,6 +784,53 @@ function confirmAdd() {
 
   var existing = new Set(config.wallpaperItems[cat].map(function(w) { return w.id; }));
   var added = 0;
+
+  // ===== 本地上传模式 =====
+  if (source === 'upload') {
+    if (pendingFiles.length === 0) { showToast('请先选择文件', 'error'); return; }
+
+    var repo = document.getElementById('repoInput').value.trim();
+    var branch = document.getElementById('branchInput').value.trim();
+    var token = document.getElementById('tokenInput').value.trim();
+
+    if (!repo || !token) { showToast('请先填写仓库和Token', 'error'); return; }
+
+    showLoading('正在上传 ' + pendingFiles.length + ' 张图片到GitHub...');
+
+    for (var i = 0; i < pendingFiles.length; i++) {
+      var file = pendingFiles[i];
+      try {
+        showLoading('上传中 (' + (i+1) + '/' + pendingFiles.length + '): ' + file.name);
+        var result = await uploadImageToGithub(file, repo, branch, token);
+        var wpId = 'upload-' + Date.now() + '-' + i;
+
+        config.wallpaperItems[cat].push({
+          source: 'custom',
+          id: wpId,
+          url: result.url,
+          thumb: result.thumb
+        });
+        added++;
+      } catch (err) {
+        showToast('上传失败: ' + file.name + ' - ' + err.message, 'error');
+        console.error(err);
+      }
+    }
+
+    hideLoading();
+    showToast('上传成功 ' + added + ' 张（记得点击保存）', 'success');
+    pendingFiles = [];
+    document.getElementById('addFileInput').value = '';
+    document.getElementById('addPreview').innerHTML = '';
+    renderTabs();
+    renderGrid();
+    renderStats();
+    return;
+  }
+
+  // ===== Pexels / 自定义URL 模式 =====
+  var input = document.getElementById('addIdOrUrl').value.trim();
+  if (!input) { showToast('请输入ID或URL', 'error'); return; }
 
   if (source === 'pexels') {
     var ids = input.split(/[,，\s]+/).filter(function(s) { return s.trim(); });
