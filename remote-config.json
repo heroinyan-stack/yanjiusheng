@@ -1,7 +1,7 @@
 {
   "_comment": "颜究生情绪手机壁纸远程配置模板 V1.3 - 多源壁纸系统。支持Pexels/Unsplash/Wallhaven/Pixabay/彼岸图网/3G壁纸。部署到CDN后，将URL填入 data/wallpapers.js 的 REMOTE_URL。",
-  "version": "1.3.1",
-  "updatedAt": "2026-08-19",
+  "version": "1.3.2",
+  "updatedAt": "2026-08-22",
   "proxyUrl": "",
   "_proxyNote": "国内站点(彼岸图网/3G壁纸)图片代理地址。部署 tools/proxy.js 后填入，如 https://your-proxy.com。留空则国内源图片不通过代理。",
   "categories": [
@@ -1736,6 +1736,68 @@
         "thumb": "https://images.pexels.com/photos/6213053/pexels-photo-6213053.jpeg?auto=compress&cs=tinysrgb&w=400",
         "width": 4000,
         "height": 6000
+      }
+    ],
+    "slang": [
+      {
+        "source": "custom",
+        "id": "upload-1787377948263-0",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377946291_6169.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377946291_6169.jpeg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377949968-1",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377948263_1997.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377948263_1997.jpeg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377951715-2",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377949968_1915.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377949968_1915.jpeg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377953142-3",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377951715_5869.png",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377951715_5869.png"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377954582-4",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377953142_187.jpeg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377953142_187.jpeg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377956279-5",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377954582_6378.jpg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377954582_6378.jpg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377959082-6",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377956279_549.jpg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377956279_549.jpg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377960614-7",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377959082_7991.jpg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377959082_7991.jpg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377962471-8",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377960614_180.jpg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377960614_180.jpg"
+      },
+      {
+        "source": "custom",
+        "id": "upload-1787377964502-9",
+        "url": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377962471_955.jpg",
+        "thumb": "https://cdn.jsdelivr.net/gh/heroinyan-stack/yanjiusheng@main/images/wp_1787377962471_955.jpg"
       }
     ]
   },
